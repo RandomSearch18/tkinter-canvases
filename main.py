@@ -3,6 +3,9 @@ from tkinter import Tk, Canvas, Spinbox, Frame, DoubleVar, TclError
 window = Tk()
 window.title("Bouncing balls")
 
+# Global variables
+balls_count = 0
+
 
 class Direction:
     # [x_velocity, y_velocity]
@@ -13,7 +16,6 @@ class Direction:
 
 
 class Ball:
-    balls_count = 0
 
     def starting_coordinates(self):
         x = 5
@@ -36,7 +38,8 @@ class Ball:
                                        outline=color,
                                        fill=color)
 
-        self.balls_count += 1
+        global balls_count
+        balls_count += 1
 
     def add_speed_spinbox(self, parent):
         spinbox = Spinbox(
@@ -46,8 +49,9 @@ class Ball:
             increment=1,
             textvariable=self.speed,
         )
-        next_free_grid_row = self.balls_count - 1
+        next_free_grid_row = balls_count - 1
         spinbox.grid(row=next_free_grid_row, column=0)
+        print(f"Added spinbox to row {next_free_grid_row}")
 
     def x_coordinate(self):
         return self.canvas.coords(self.oval)[0]
@@ -123,5 +127,9 @@ controls_frame.grid(row=1, column=0)
 red_ball = Ball(window, canvas, 10.0, "#ff0000")
 red_ball.add_speed_spinbox(controls_frame)
 red_ball.update_velocity()
+
+blue_ball = Ball(window, canvas, 5.0, "#0000ff")
+blue_ball.add_speed_spinbox(controls_frame)
+blue_ball.update_velocity()
 
 window.mainloop()
