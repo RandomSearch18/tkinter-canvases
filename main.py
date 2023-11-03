@@ -1,4 +1,4 @@
-from tkinter import Tk, Canvas, Spinbox, Frame, IntVar
+from tkinter import Tk, Canvas, Spinbox, Frame, DoubleVar, TclError
 
 window = Tk()
 window.title("Bouncing balls")
@@ -24,7 +24,7 @@ class Ball:
         return [x, y, width, height]
 
     def __init__(self, window: Tk, canvas: Canvas, speed: float, color: str):
-        self.speed = IntVar(value=speed)
+        self.speed = DoubleVar(value=speed)
         self.direction = Direction.DOWN_RIGHT
         self.canvas = canvas
         self.coordinates = self.starting_coordinates()
@@ -64,8 +64,13 @@ class Ball:
     def update_velocity(self):
         self.update_direction()
 
-        # Bounce off the edges of the window
-        speed = self.speed.get()
+        try:
+            speed = self.speed.get()
+        except TclError as error:
+            #print(f"Ignoring invalid speed: {error}")
+            window.after(33, self.update_velocity)
+            return
+
         x_direction = self.direction[0]
         y_direction = self.direction[1]
 
@@ -94,6 +99,7 @@ class Ball:
         y_upper_bound = canvas_height - self.height()
         #print("limit", x_upper_bound, y_upper_bound)
 
+        # Bounce off the edges of the window
         if self.x_coordinate() < 0:
             # Left wall
             self.direction[0] = 1
