@@ -27,7 +27,7 @@ class Ball:
 
     def __init__(self, window: Tk, canvas: Canvas, speed: float, color: str):
         self.speed = DoubleVar(value=speed)
-        self.direction = Direction.DOWN_RIGHT
+        self.direction = Direction.DOWN_RIGHT.copy()
         self.canvas = canvas
         self.coordinates = self.starting_coordinates()
 
@@ -51,7 +51,7 @@ class Ball:
         )
         next_free_grid_row = balls_count - 1
         spinbox.grid(row=next_free_grid_row, column=0)
-        print(f"Added spinbox to row {next_free_grid_row}")
+        #print(f"Added spinbox to row {next_free_grid_row}")
 
     def x_coordinate(self):
         return self.canvas.coords(self.oval)[0]
@@ -77,6 +77,7 @@ class Ball:
 
         x_direction = self.direction[0]
         y_direction = self.direction[1]
+        #print(f"{self.oval}: {x_direction}, {y_direction}")
 
         self.x_velocity = speed * x_direction
         self.y_velocity = speed * y_direction
@@ -107,15 +108,19 @@ class Ball:
         if self.x_coordinate() < 0:
             # Left wall
             self.direction[0] = 1
+            print(f"{self.oval}: Bouncing right")
         if self.x_coordinate() > x_upper_bound:
             # Right wall
             self.direction[0] = -1
+            print(f"{self.oval}: Bouncing left")
         if self.y_coordinate() < 0:
             # Top wall
             self.direction[1] = 1
+            print(f"{self.oval}: Bouncing down")
         if self.y_coordinate() > y_upper_bound:
             # Bottom wall
             self.direction[1] = -1
+            print(f"{self.oval}: Bouncing up")
 
 
 canvas = Canvas(window, height=300, width=600)
