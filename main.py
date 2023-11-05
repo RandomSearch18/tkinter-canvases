@@ -25,12 +25,19 @@ class Ball:
 
         return [x, y, width, height]
 
-    def __init__(self, window: Tk, canvas: Canvas, speed: float, color: str):
-        self.speed = DoubleVar(value=speed)
-        self.direction = Direction.DOWN_RIGHT.copy()
+    def __init__(self,
+                 window: Tk,
+                 canvas: Canvas,
+                 speed: float,
+                 color: str,
+                 bounds=None):
         self.canvas = canvas
-        self.coordinates = self.starting_coordinates()
+        self.speed = DoubleVar(value=speed)
 
+        self.bounds = bounds
+
+        self.direction = Direction.DOWN_RIGHT.copy()
+        self.coordinates = self.starting_coordinates()
         self.x_velocity = 5
         self.y_velocity = 5
 
@@ -40,6 +47,20 @@ class Ball:
 
         global balls_count
         balls_count += 1
+
+    def calculate_bounds(self):
+        # Boundaries for the bottom-right of the object
+        end_bounds = self.bounds or [
+            self.canvas.winfo_width(),
+            self.canvas.winfo_height()
+        ]
+
+        # Boundaries for the top-left of the object
+        start_bounds = [
+            end_bounds[0] - self.width(), end_bounds[1] - self.height()
+        ]
+
+        return start_bounds
 
     def add_speed_spinbox(self, parent):
         spinbox = Spinbox(
@@ -77,32 +98,17 @@ class Ball:
 
         x_direction = self.direction[0]
         y_direction = self.direction[1]
-        #print(f"{self.oval}: {x_direction}, {y_direction}")
 
         self.x_velocity = speed * x_direction
         self.y_velocity = speed * y_direction
-
-        # if self.x_coordinate() > x_upper_bound:
-        #     self.x_velocity = -speed
-        # if self.y_coordinate() < 0:
-        #     self.y_velocity = speed
-        # if self.y_coordinate() > y_upper_bound:
-        #     self.y_velocity = -speed
 
         self.canvas.move(self.oval, self.x_velocity, self.y_velocity)
 
         window.after(33, self.update_velocity)
 
     def update_direction(self):
-        #self.canvas.update()
-        canvas_width = 600  #self.canvas.winfo_width()
-        canvas_height = 300  #self.canvas.winfo_height()
-        #print(canvas_width, canvas_height)
-        #print("a", window.winfo_height(), window.winfo_height())
-
-        x_upper_bound = canvas_width - self.width()
-        y_upper_bound = canvas_height - self.height()
-        #print("limit", x_upper_bound, y_upper_bound)
+        x_upper_bound = self.calculate_bounds()[0]
+        y_upper_bound = self.calculate_bounds()[1]
 
         # Bounce off the edges of the window
         if self.x_coordinate() < 0:
@@ -123,17 +129,17 @@ class Ball:
             print(f"{self.oval}: Bouncing up")
 
 
-canvas = Canvas(window, height=300, width=600)
+canvas = Canvas(window, height=300, width=600, background="white")
 canvas.grid(row=0, column=0)
 
 controls_frame = Frame(window)
-controls_frame.grid(row=1, column=0)
+controls_frame.grid(row=1, column=0, pady=5)
 
 red_ball = Ball(window, canvas, 10.0, "#ff0000")
 red_ball.add_speed_spinbox(controls_frame)
 red_ball.update_velocity()
 
-blue_ball = Ball(window, canvas, 5.0, "#0000ff")
+blue_ball = Ball(window, canvas, 5.0, "#0000ff", bounds=[200, 300])
 blue_ball.add_speed_spinbox(controls_frame)
 blue_ball.update_velocity()
 
