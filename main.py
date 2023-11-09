@@ -36,10 +36,10 @@ class Ball:
 
         self.bounds = bounds
 
-        self.direction = Direction.DOWN_RIGHT.copy()
+        self.direction = [0, 0]
         self.coordinates = self.starting_coordinates()
-        self.x_velocity = 5
-        self.y_velocity = 5
+        self.x_velocity = 0
+        self.y_velocity = 0
 
         self.oval = canvas.create_oval(self.coordinates,
                                        outline=color,
@@ -99,12 +99,45 @@ class Ball:
         x_direction = self.direction[0]
         y_direction = self.direction[1]
 
-        self.x_velocity = speed * x_direction
-        self.y_velocity = speed * y_direction
+        self.x_velocity = abs(self.x_velocity) * x_direction
+        self.y_velocity = abs(self.y_velocity) * y_direction
 
         self.canvas.move(self.oval, self.x_velocity, self.y_velocity)
 
         window.after(33, self.update_velocity)
+
+    def on_key_down(self, event):
+        #print("Keydown", event.keysym)
+        if event.keysym == "Up":
+            self.set_direction("y", -1)  # [-1, 1]
+        elif event.keysym == "Down":
+            self.set_direction("y", 1)
+        elif event.keysym == "Left":
+            self.set_direction("x", -1)
+        elif event.keysym == "Right":
+            self.set_direction("x", 1)
+
+    def on_key_up(self, event):
+        #print("Down", event.keysym)
+        if event.keysym == "Up":
+            self.set_direction("y", 0)
+        elif event.keysym == "Down":
+            self.set_direction("y", 0)
+        elif event.keysym == "Left":
+            self.set_direction("x", 0)
+        elif event.keysym == "Right":
+            self.set_direction("x", 0)
+
+    def set_direction(self, axis: str, direction: int):
+        if axis == "x":
+            self.x_velocity = 5 * direction
+        elif axis == "y":
+            self.y_velocity = 5 * direction
+
+        print("x", self.x_velocity)
+        print("y", self.y_velocity)
+
+        self.canvas.move(self.oval, self.x_velocity, self.y_velocity)
 
     def update_direction(self):
         x_upper_bound = self.calculate_bounds()[0]
@@ -114,19 +147,19 @@ class Ball:
         if self.x_coordinate() < 0:
             # Left wall
             self.direction[0] = 1
-            print(f"{self.oval}: Bouncing right")
         if self.x_coordinate() > x_upper_bound:
             # Right wall
             self.direction[0] = -1
-            print(f"{self.oval}: Bouncing left")
         if self.y_coordinate() < 0:
             # Top wall
             self.direction[1] = 1
-            print(f"{self.oval}: Bouncing down")
         if self.y_coordinate() > y_upper_bound:
             # Bottom wall
             self.direction[1] = -1
-            print(f"{self.oval}: Bouncing up")
+
+
+def bind_to_keypress(key, function):
+    pass
 
 
 canvas = Canvas(window, height=300, width=600, background="white")
@@ -136,11 +169,14 @@ controls_frame = Frame(window)
 controls_frame.grid(row=1, column=0, pady=5)
 
 red_ball = Ball(window, canvas, 10.0, "#ff0000")
-red_ball.add_speed_spinbox(controls_frame)
-red_ball.update_velocity()
+#red_ball.add_speed_spinbox(controls_frame)
+#red_ball.update_velocity()
 
-blue_ball = Ball(window, canvas, 5.0, "#0000ff", bounds=[200, 300])
-blue_ball.add_speed_spinbox(controls_frame)
-blue_ball.update_velocity()
+#blue_ball = Ball(window, canvas, 5.0, "#0000ff", bounds=[200, 300])
+#blue_ball.add_speed_spinbox(controls_frame)
+#blue_ball.update_velocity()
+
+window.bind_all("<KeyPress>", red_ball.on_key_down)
+window.bind_all("<KeyRelease>", red_ball.on_key_up)
 
 window.mainloop()
