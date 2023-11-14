@@ -17,27 +17,30 @@ class Direction:
 
 class Ball:
 
-    def starting_coordinates(self):
-        x = 5
-        y = 5
+    def starting_coordinates(self, x: int, y: int):
         width = 50
         height = 50
+        x_end = x + width
+        y_end = y + height
 
-        return [x, y, width, height]
+        return [x, y, x_end, y_end]
 
     def __init__(self,
                  window: Tk,
                  canvas: Canvas,
                  speed: float,
                  color: str,
-                 bounds=None):
+                 bounds=None,
+                 direction=[0, 0],
+                 start_x=5,
+                 start_y=5):
         self.canvas = canvas
         self.speed = DoubleVar(value=speed)
 
         self.bounds = bounds
 
-        self.direction = [0, 0]
-        self.coordinates = self.starting_coordinates()
+        self.direction = direction
+        self.coordinates = self.starting_coordinates(start_x, start_y)
         self.x_velocity = 0
         self.y_velocity = 0
 
@@ -86,6 +89,11 @@ class Ball:
     def height(self):
         return 50  # TODO don't hardcode
 
+    def get_other_objects(self):
+        return [
+            object for object in self.canvas.find_all() if object != self.oval
+        ]
+
     def update_velocity(self):
         self.update_direction()
 
@@ -99,17 +107,29 @@ class Ball:
         x_direction = self.direction[0]
         y_direction = self.direction[1]
 
-        self.x_velocity = abs(self.x_velocity) * x_direction
-        self.y_velocity = abs(self.y_velocity) * y_direction
+        self.x_velocity = speed * x_direction
+        self.y_velocity = speed * y_direction
 
         self.canvas.move(self.oval, self.x_velocity, self.y_velocity)
 
         window.after(33, self.update_velocity)
 
+    def check_for_collision(self):
+        for object in self.get_other_objects():
+            our_bounds = self.canvas.coords(self.oval)
+            their_bounds = self.canvas.coords(object)
+
+            has_collided_x = our_bounds[2] >= their_bounds[0] and their_bounds[2] >= our_bounds[0]
+            has_collided_y = our_bounds[3] >= their_bounds[1] and their_bounds[3] >= our_bounds[1]
+            if has_collided_x and has_collided_y:
+                print(f"Collision")
+
+        window.after(33, self.check_for_collision)
+        
     def on_key_down(self, event):
         #print("Keydown", event.keysym)
         if event.keysym == "Up":
-            self.set_direction("y", -1)  # [-1, 1]
+            self.set_direction("y", -1)
         elif event.keysym == "Down":
             self.set_direction("y", 1)
         elif event.keysym == "Left":
@@ -133,9 +153,6 @@ class Ball:
             self.x_velocity = 5 * direction
         elif axis == "y":
             self.y_velocity = 5 * direction
-
-        print("x", self.x_velocity)
-        print("y", self.y_velocity)
 
         self.canvas.move(self.oval, self.x_velocity, self.y_velocity)
 
@@ -168,13 +185,20 @@ canvas.grid(row=0, column=0)
 controls_frame = Frame(window)
 controls_frame.grid(row=1, column=0, pady=5)
 
-red_ball = Ball(window, canvas, 10.0, "#ff0000")
+red_ball = Ball(window, canvas, 10.0, "#ff0000", start_x=300, start_y=200)
+red_ball.check_for_collision()
 #red_ball.add_speed_spinbox(controls_frame)
 #red_ball.update_velocity()
 
-#blue_ball = Ball(window, canvas, 5.0, "#0000ff", bounds=[200, 300])
-#blue_ball.add_speed_spinbox(controls_frame)
-#blue_ball.update_velocity()
+blue_ball = Ball(
+    window,
+    canvas,
+    2.0,
+    "#0000ff",
+    bounds=[200, 300],
+    direction=[1, 1],
+)
+blue_ball.update_velocity()
 
 window.bind_all("<KeyPress>", red_ball.on_key_down)
 window.bind_all("<KeyRelease>", red_ball.on_key_up)
